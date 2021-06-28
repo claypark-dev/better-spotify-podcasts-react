@@ -1,17 +1,18 @@
 import React from 'react'
 
-export default function Tracksearchresult({track, chooseTrack}) {
+export default function Tracksearchresult({show, chooseShow}) {
     function handlePlay(){
-        chooseTrack(track)
+        chooseShow(show)
     }
+    // console.log(show.uri)
     return (
         <div className="d-flex m-2 align-items-center" 
         style={{cursor: 'pointer'}}
         onClick={handlePlay}>
-            <img src={track.albumURL} style={{height: '64px', width: '64px'}} />
+            <img src={show.albumURL} style={{height: '64px', width: '64px'}} />
             <div className="m1-3">
-                <div>{track.title}</div>
-                <div className="text-muted">{track.artist}</div>
+                <div>{show.name}</div>
+                <div className="text-muted">{show.description}</div>
             </div>
         </div>
     )

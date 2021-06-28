@@ -12,11 +12,18 @@ export default function Dashboard({code}) {
     const accessToken = useAuth(code)
     const [search, setSearch] = useState('')
     const [searchResults, setSearchResults] = useState([])
-    const [playingTrack, setPlayingTrack] = useState()
+    const [playingShow, setPlayingShow] = useState()
 
-    function chooseTrack(track){
-        setPlayingTrack(track)
-        setSearch('')
+    function chooseShow(show){
+        spotifyApi.getShowEpisodes(show.id).then(res => {
+        //TODO map promise to be able to return the show description
+            if(res.items.length != 0){
+                console.log(res.items[0].uri)
+                show.uri = res.items[0].uri
+                setPlayingShow(show)
+                setSearch('')
+            }
+        })
     }
 
     useEffect(() => {
@@ -28,21 +35,39 @@ export default function Dashboard({code}) {
         if(!search) return setSearchResults([])
         if(!accessToken) return
         let cancel = false
-        spotifyApi.searchTracks(search).then(res => {
+        spotifyApi.searchShows(search).then(res => {
             if(cancel) return
-            setSearchResults(res.tracks.items.map(track => {
-                const smallestAlbumImage = track.album.images.reduce((smallest,image) => {
+            setSearchResults(res.shows.items.map(show => {
+                // console.log(show);
+                const smallestAlbumImage = show.images.reduce((smallest,image) => {
                     if(image.height < smallest.height) return image
                     return smallest
-                }, track.album.images[0])
+                }, show.images[0])
                 return{
-                  artist: track.artists[0].name,
-                  title: track.name,
-                  uri: track.uri,
+                  description: show.description,
+                  id: show.id,
+                  name: show.name,
+                  uri: show.uri,
                   albumURL: smallestAlbumImage.url
                 }
             }))
         })
+        console.log(searchResults)
+        // spotifyApi.searchTracks(search).then(res => {
+        //     if(cancel) return
+        //     setSearchResults(res.tracks.items.map(track => {
+        //         const smallestAlbumImage = track.album.images.reduce((smallest,image) => {
+        //             if(image.height < smallest.height) return image
+        //             return smallest
+        //         }, track.album.images[0])
+        //         return{
+        //           artist: track.artists[0].name,
+        //           title: track.name,
+        //           uri: track.uri,
+        //           albumURL: smallestAlbumImage.url
+        //         }
+        //     }))
+        // })
         return () => cancel = true
     }, [search, accessToken])
     return <Container className="d-flex flex-column py-2" style={{height: '100vh'}}>
@@ -52,11 +77,11 @@ export default function Dashboard({code}) {
         value={search} 
         onChange={e => setSearch(e.target.value)} />
         <div className="flex-grow-1 my-2" style={{overflowY: 'auto'}}>
-            {searchResults.map(track => (
-                <TrackSearchResult track={track} key={track.uri} chooseTrack={chooseTrack}/>
+            {searchResults.map(show => (
+                <TrackSearchResult show={show} key={show.uri} chooseShow={chooseShow}/>
             ))}
         </div>
-        <div><Player accessToken={accessToken} trackUri={playingTrack?.uri}/>
+        <div><Player accessToken={accessToken} showUri={playingShow?.uri}/>
         </div>
         </Container>
 
